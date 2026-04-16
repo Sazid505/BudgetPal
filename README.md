@@ -205,4 +205,4 @@ This project is for personal/educational use. Feel free to fork and adapt.
 
 ---
 
-> Built by [Sazid](https://github.com/Sazid505)
+> Built by Md.Sazid, Rohan Talpur, Krishna Kumar Mahato & Maaz Bobat
