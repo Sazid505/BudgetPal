@@ -1,0 +1,163 @@
+.feat-page {
+  font-family: 'DM Sans', sans-serif;
+  background: #0a0a0f;
+  color: #f0ede8;
+  min-height: 100vh;
+}
+
+/* ── Hero ── */
+.feat-hero {
+  position: relative;
+  padding: 7rem 6rem 5rem;
+  overflow: hidden;
+  text-align: center;
+}
+
+.feat-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  animation: fadeUp 0.7s ease both;
+}
+
+.feat-hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 0 0 1.25rem;
+}
+
+.feat-hero-sub {
+  font-size: 1.05rem;
+  color: #9e9b95;
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+/* ── 2-column card grid ── */
+.feat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 2rem 6rem 5rem;
+}
+
+/* ── Individual card ── */
+.feat-card {
+  background: #13131a;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.2s, transform 0.2s;
+  animation: fadeUp 0.55s ease both;
+}
+
+.feat-card:hover {
+  border-color: rgba(200,169,110,0.35);
+  transform: translateY(-4px);
+}
+
+/* Top row: icon bubble + tag */
+.feat-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.feat-card-icon-wrap {
+  width: 46px;
+  height: 46px;
+  background: #1e1e28;
+  border: 1px solid rgba(200,169,110,0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.feat-card:hover .feat-card-icon-wrap {
+  background: rgba(200,169,110,0.12);
+  border-color: rgba(200,169,110,0.3);
+}
+
+.feat-card-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.feat-card-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c8a96e;
+  background: rgba(200,169,110,0.1);
+  border: 1px solid rgba(200,169,110,0.18);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.feat-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f0ede8;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.feat-card-desc {
+  font-size: 0.9rem;
+  color: #8a8780;
+  line-height: 1.7;
+  margin: 0;
+  flex: 1;
+}
+
+.feat-card-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.feat-card-points li {
+  font-size: 0.85rem;
+  color: #b0ada6;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.45;
+}
+
+.feat-check {
+  color: #c8a96e;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .feat-grid  { padding: 2rem 3rem 4rem; gap: 1.25rem; }
+  .feat-hero  { padding: 5rem 3rem 3rem; }
+}
+
+@media (max-width: 700px) {
+  .feat-grid  { grid-template-columns: 1fr; padding: 1.5rem 1.25rem 3rem; }
+  .feat-hero  { padding: 4rem 1.5rem 2.5rem; }
+  .feat-card  { padding: 1.5rem; }
+}
