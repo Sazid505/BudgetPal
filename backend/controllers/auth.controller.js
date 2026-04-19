@@ -5,6 +5,9 @@ import { getStoredReceiptCount } from "../utils/receiptStats.js";
 
 const authCtrl = {};
 
+// In-memory signup lock flag — admin can disable new registrations without a DB change.
+let signupLocked = false;
+
 // Tracking Active Users for Admin Dashboard.
 const ACTIVE_MINUTES = 15;
 const activeMap = new Map();
@@ -30,6 +33,8 @@ function getActiveCount() {
 authCtrl.signup = async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: "Missing fields" });
+  // Block new signups if admin has locked registrations.
+  if (signupLocked) return res.status(403).json({ error: "New registrations are currently disabled." });
 
   // Hash the password before storing it in the database.
   const hashed = await bcrypt.hash(password, 10);
@@ -148,6 +153,32 @@ authCtrl.changePassword = (req, res) => {
       res.json({ message: "Password changed successfully" });
     });
   });
+};
+
+// Admin: promote or demote any user's role (cannot change own role).
+authCtrl.updateUserRole = (req, res) => {
+  const targetId = parseInt(req.params.id, 10);
+  const { role } = req.body;
+  if (req.user.id === targetId) return res.status(400).json({ error: "You cannot change your own role." });
+  if (!["admin", "user"].includes(role)) return res.status(400).json({ error: "Invalid role." });
+  db.query("UPDATE users SET role = ? WHERE id = ?", [role, targetId], (err, result) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "User not found." });
+    res.json({ message: `User role updated to ${role}.` });
+  });
+};
+
+// Admin: get the current signup lock state.
+authCtrl.getSignupLock = (req, res) => {
+  res.json({ locked: signupLocked });
+};
+
+// Admin: toggle the signup lock on or off.
+authCtrl.setSignupLock = (req, res) => {
+  const { locked } = req.body;
+  if (typeof locked !== "boolean") return res.status(400).json({ error: "locked must be true or false." });
+  signupLocked = locked;
+  res.json({ locked: signupLocked, message: locked ? "Signups disabled." : "Signups enabled." });
 };
 
 authCtrl.getAdminStats = (req, res) => {

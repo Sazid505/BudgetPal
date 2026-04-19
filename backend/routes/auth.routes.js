@@ -17,6 +17,9 @@ router.delete("/delete", authCtrl.requireSignin, authCtrl.deleteAccount);
 // Admin routes
 router.get("/users", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.getAllUsers);
 router.delete("/users/:id", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.deleteUser);
+router.put("/users/:id/role", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.updateUserRole);
 router.get("/stats", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.getAdminStats);
+router.get("/signup-lock", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.getSignupLock);
+router.put("/signup-lock", authCtrl.requireSignin, authCtrl.requireAdmin, authCtrl.setSignupLock);
 
 export default router;

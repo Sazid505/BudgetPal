@@ -43,6 +43,7 @@ export default function Navbar({ user, setUser }) {
               <>
                 <li><Link to="/admin/dashboard">Admin Dashboard</Link></li>
                 <li><Link to="/admin/users">Manage Users</Link></li>
+                <li><Link to="/admin/settings">Settings</Link></li>
               </>
             ) : (
               <>

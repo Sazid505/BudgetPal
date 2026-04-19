@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import authCtrl from "../controllers/auth.controller.js";
-import { extractText, getReceipts, updateReceiptCategory, deleteReceipt } from "../controllers/receipt.controller.js";
+import { extractText, getReceipts, getAllReceipts, updateReceiptCategory, deleteReceipt } from "../controllers/receipt.controller.js";
 
 const router = express.Router();
 
@@ -17,6 +17,9 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// GET /api/receipts/all — Admin: all receipts from all users
+router.get("/all", authCtrl.requireSignin, authCtrl.requireAdmin, getAllReceipts);
 
 // GET  /api/receipts         — list all receipts for logged-in user
 router.get("/", authCtrl.requireSignin, getReceipts);

@@ -134,6 +134,22 @@ export const deleteReceipt = (req, res) => {
   });
 };
 
+// GET /api/receipts/all — Admin: get ALL receipts from all users
+export const getAllReceipts = (req, res) => {
+  db.query(
+    `SELECT r.id, r.filename, r.merchant, r.amount, r.date, r.category,
+            r.created_at AS uploaded_at,
+            u.name AS user_name, u.email AS user_email
+     FROM receipts r
+     JOIN users u ON r.user_id = u.id
+     ORDER BY r.created_at DESC`,
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json(results);
+    }
+  );
+};
+
 // PATCH /api/receipts/:id/category — update category after ML prediction
 export const updateReceiptCategory = (req, res) => {
   const userId = req.user.id;

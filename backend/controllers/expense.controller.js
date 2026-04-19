@@ -72,4 +72,21 @@ expenseCtrl.deleteExpense = (req, res) => {
   });
 };
 
+// Admin: get ALL expenses from all users with user and category info.
+export const getAllExpenses = (req, res) => {
+  db.query(
+    `SELECT e.id, e.description, e.amount, e.date,
+            c.name AS category,
+            u.name AS user_name, u.email AS user_email
+     FROM expenses e
+     LEFT JOIN categories c ON e.category_id = c.id
+     LEFT JOIN users u ON e.user_id = u.id
+     ORDER BY e.date DESC, e.id DESC`,
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json(results);
+    }
+  );
+};
+
 export default expenseCtrl;

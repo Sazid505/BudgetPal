@@ -6,6 +6,182 @@ import { addReceiptToHistory } from "./Receipts";
 
 const PREDICT_TEXT_MAX = 6000;
 
+// ── Standalone Category Manager component ──────────────────────────────────
+function CategoryManager() {
+  const token = localStorage.getItem("token");
+  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+  const [categories,  setCategories]  = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [newName,     setNewName]     = useState("");
+  const [newType,     setNewType]     = useState("expense");
+  const [editingCat,  setEditingCat]  = useState(null); // { id, name }
+  const [msg,         setMsg]         = useState(null); // { type, text }
+  const [open,        setOpen]        = useState(false); // collapsed by default
+  const msgTimer = useRef(null);
+  const wrapperRef = useRef(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const showMsg = (type, text) => {
+    clearTimeout(msgTimer.current);
+    setMsg({ type, text });
+    msgTimer.current = setTimeout(() => setMsg(null), 4000);
+  };
+
+  useEffect(() => {
+    if (!open) return; // only load when panel is expanded
+    fetch("/api/expenses/categories/all", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => { setCategories(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [open]);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!newName.trim()) return showMsg("error", "Category name cannot be empty.");
+    try {
+      const res = await fetch("/api/expenses/categories/all", {
+        method: "POST", headers, body: JSON.stringify({ name: newName.trim(), type: newType })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg("error", data.error || "Failed to add.");
+      setCategories((p) => [...p, data]);
+      setNewName("");
+      showMsg("success", `"${data.name}" added.`);
+    } catch { showMsg("error", "Network error."); }
+  };
+
+  const handleRename = async (id) => {
+    if (!editingCat?.name?.trim()) return;
+    try {
+      const res = await fetch(`/api/expenses/categories/all/${id}`, {
+        method: "PUT", headers, body: JSON.stringify({ name: editingCat.name.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg("error", data.error || "Failed to rename.");
+      setCategories((p) => p.map((c) => c.id === id ? { ...c, name: editingCat.name.trim() } : c));
+      setEditingCat(null);
+      showMsg("success", "Category renamed.");
+    } catch { showMsg("error", "Network error."); }
+  };
+
+  const handleDelete = async (id, name, count) => {
+    if (count > 0) return showMsg("error", `Cannot delete "${name}" — ${count} expense(s) use it.`);
+    if (!window.confirm(`Delete category "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/expenses/categories/all/${id}`, { method: "DELETE", headers });
+      const data = await res.json();
+      if (!res.ok) return showMsg("error", data.error || "Failed to delete.");
+      setCategories((p) => p.filter((c) => c.id !== id));
+      showMsg("success", `"${name}" deleted.`);
+    } catch { showMsg("error", "Network error."); }
+  };
+
+  return (
+    <div className="cat-manager-card" ref={wrapperRef}>
+      {/* ── Header — click to expand/collapse ── */}
+      <button className="cat-manager-toggle" onClick={() => setOpen((p) => !p)}>
+        <span className="cat-manager-title">🏷️ Manage Categories</span>
+        <span className="cat-manager-chevron">{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div className="cat-manager-body">
+          <p className="cat-manager-desc">
+            Add, rename, or delete expense and income categories. Categories with existing expenses cannot be deleted.
+          </p>
+
+          {/* ── Message ── */}
+          {msg && <div className={`cat-manager-msg ${msg.type}`}>{msg.text}</div>}
+
+          {/* ── Add form ── */}
+          <form className="cat-manager-add-form" onSubmit={handleAdd}>
+            <input
+              className="cat-manager-input"
+              type="text"
+              placeholder="New category name…"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <select
+              className="cat-manager-select"
+              value={newType}
+              onChange={(e) => setNewType(e.target.value)}
+            >
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+            <button type="submit" className="cat-manager-add-btn">Add</button>
+          </form>
+
+          {/* ── Category lists ── */}
+          {loading ? (
+            <p className="cat-manager-empty">Loading…</p>
+          ) : (
+            ["expense", "income"].map((type) => {
+              const group = categories.filter((c) => c.type === type);
+              return (
+                <div key={type} className="cat-manager-group">
+                  <span className="cat-manager-group-label">
+                    {type === "expense" ? "💸 Expense" : "💰 Income"}
+                    <span className="cat-manager-group-count">{group.length}</span>
+                  </span>
+                  <div className="cat-manager-list">
+                    {group.map((cat) => (
+                      <div key={cat.id} className="cat-manager-row">
+                        {editingCat?.id === cat.id ? (
+                          <>
+                            <input
+                              className="cat-manager-edit-input"
+                              value={editingCat.name}
+                              onChange={(e) => setEditingCat({ ...editingCat, name: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleRename(cat.id);
+                                if (e.key === "Escape") setEditingCat(null);
+                              }}
+                              autoFocus
+                            />
+                            <button className="cat-btn save"   onClick={() => handleRename(cat.id)}>✓</button>
+                            <button className="cat-btn cancel" onClick={() => setEditingCat(null)}>✕</button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="cat-manager-name">{cat.name}</span>
+                            <span className="cat-manager-uses">{cat.expense_count} uses</span>
+                            <button className="cat-btn edit"   onClick={() => setEditingCat({ id: cat.id, name: cat.name })}>✏️</button>
+                            <button
+                              className="cat-btn delete"
+                              onClick={() => handleDelete(cat.id, cat.name, cat.expense_count)}
+                              disabled={cat.expense_count > 0}
+                              title={cat.expense_count > 0 ? "In use — cannot delete" : "Delete"}
+                            >🗑️</button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                    {group.length === 0 && <p className="cat-manager-empty">No {type} categories yet.</p>}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const BUDGET_CATEGORIES = [
   "Food", "Transportation", "Healthcare", "Miscellaneous", "Housing",
   "Entertainment", "Shopping", "Personal", "Debt Payments", "Education",
@@ -632,6 +808,9 @@ const Dashboard = ({ addExpense, addIncome, income = [], expenses = [], refreshE
               );
             })}
           </div>
+
+          {/* ── Category Manager (embedded) ── */}
+          <CategoryManager />
         </div>
 
         {/* ── Income + Savings split ── */}

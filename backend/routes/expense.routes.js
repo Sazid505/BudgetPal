@@ -1,6 +1,6 @@
 import express from "express";
 import authCtrl from "../controllers/auth.controller.js";
-import expenseCtrl from "../controllers/expense.controller.js";
+import expenseCtrl, { getAllExpenses } from "../controllers/expense.controller.js";
 import categoryCtrl from "../controllers/category.controller.js";
 
 const router = express.Router();
@@ -11,6 +11,15 @@ router.get("/categories", authCtrl.requireSignin, categoryCtrl.getCategories);
 // POST request that takes text description of expense in the request body and uses AI model to suggest a category
 // Requires the user to be logged in
 router.post("/predict-category", authCtrl.requireSignin, categoryCtrl.predictCategory);
+
+// Category CRUD — available to all logged-in users (used in the user Dashboard)
+router.get("/categories/all", authCtrl.requireSignin, categoryCtrl.adminListCategories);
+router.post("/categories/all", authCtrl.requireSignin, categoryCtrl.adminCreateCategory);
+router.put("/categories/all/:id", authCtrl.requireSignin, categoryCtrl.adminUpdateCategory);
+router.delete("/categories/all/:id", authCtrl.requireSignin, categoryCtrl.adminDeleteCategory);
+
+// Admin: getting all expenses from all users.
+router.get("/all", authCtrl.requireSignin, authCtrl.requireAdmin, getAllExpenses);
 
 // Getting all expenses belonging to the user.
 router.get("/", authCtrl.requireSignin, expenseCtrl.getExpenses);

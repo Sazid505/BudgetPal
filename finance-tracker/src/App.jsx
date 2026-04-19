@@ -13,6 +13,7 @@ import Receipts from "./pages/users/Receipts";
 import Settings from "./pages/users/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Users from "./pages/admin/Users";
+import AdminSettings from "./pages/admin/AdminSettings";
 import Forecast from "./pages/users/Forecast";
 import "./App.css";
 import { api, getToken } from "./utils/api";
@@ -212,6 +213,7 @@ function App() {
         <Route path="/settings" element={<Settings user={user} setUser={setUser} />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<Users />} />
+        <Route path="/admin/settings" element={<AdminSettings user={user} setUser={setUser} />} />
       </Routes>
     </Router>
   );
